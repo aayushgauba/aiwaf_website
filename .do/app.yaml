@@ -1,0 +1,16 @@
+name: aiwaf-website
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: aayushgauba/aiwaf_website
+    branch: main
+  run_command: gunicorn --worker-tmp-dir /dev/shm --config gunicorn.conf.py wsgi:application
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  routes:
+  - path: /
+  envs:
+  - key: PORT
+    value: "8080"
