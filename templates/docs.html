@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - AIWAF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); color: #e0e0e0; line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        .header { background: rgba(16, 16, 30, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: fixed; top: 0; width: 100%; z-index: 1000; transition: all 0.3s ease; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+        .logo { font-size: 2rem; font-weight: 800; background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 3s ease-in-out infinite; }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .nav { display: flex; gap: 2rem; }
+        .nav-link { color: #e0e0e0; text-decoration: none; padding: 0.5rem 1rem; border-radius: 50px; transition: all 0.3s ease; }
+        .nav-link:hover { color: #4ecdc4; transform: translateY(-2px); }
+        .main-content { display: grid; grid-template-columns: 300px 1fr; gap: 3rem; padding: 120px 0 3rem; position: relative; }
+        .sidebar { background: rgba(16, 16, 30, 0.6); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; height: fit-content; position: sticky; top: 120px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; color: #4ecdc4; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav li { margin-bottom: 0.5rem; }
+        .sidebar-nav a { color: #b0b0b0; text-decoration: none; padding: 0.5rem 1rem; border-radius: 10px; display: block; transition: all 0.3s ease; }
+        .sidebar-nav a:hover { background: rgba(78, 205, 196, 0.2); color: #4ecdc4; transform: translateX(5px); }
+        .content { background: rgba(16, 16, 30, 0.4); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .doc-card { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 2rem; margin-bottom: 2rem; transition: all 0.3s ease; }
+        .doc-card:hover { transform: translateY(-5px); border-color: rgba(78, 205, 196, 0.5); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); }
+        .doc-card h3 { color: #ff6b6b; margin-bottom: 1rem; font-size: 1.5rem; }
+        .doc-card a { color: #4ecdc4; text-decoration: none; font-weight: 600; }
+        .doc-card a:hover { text-decoration: underline; }
+        .page-title { font-size: 3rem; font-weight: 900; margin-bottom: 2rem; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        @media (max-width: 1024px) { .main-content { grid-template-columns: 1fr; } .sidebar { position: static; order: -1; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">AIWAF</div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/docs" class="nav-link">Documentation</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <aside class="sidebar">
+                <h3 class="sidebar-title">Frameworks</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="/docs/django">Django</a></li>
+                    <li><a href="#" style="opacity: 0.5; cursor: not-allowed;">Flask (Coming Soon)</a></li>
+                    <li><a href="#" style="opacity: 0.5; cursor: not-allowed;">FastAPI (Coming Soon)</a></li>
+                </ul>
+            </aside>
+
+            <main class="content">
+                <h1 class="page-title">Documentation</h1>
+                
+                <div class="doc-card">
+                    <h3>Django Framework</h3>
+                    <p>Complete AIWAF integration guide for Django web applications, including middleware setup, configuration, and best practices.</p>
+                    <a href="/docs/django">Explore Django Docs →</a>
+                </div>
+
+                <div class="doc-card" style="opacity: 0.6;">
+                    <h3>Flask Framework</h3>
+                    <p>Integration guide for Flask applications. Coming soon with comprehensive examples and deployment strategies.</p>
+                    <span style="color: #666;">Coming Soon</span>
+                </div>
+
+                <div class="doc-card" style="opacity: 0.6;">
+                    <h3>FastAPI Framework</h3>
+                    <p>Modern async Python web framework integration with AIWAF for high-performance applications.</p>
+                    <span style="color: #666;">Coming Soon</span>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Header scroll effect
+        const header = document.querySelector('.header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(16, 16, 30, 0.95)';
+            } else {
+                header.style.background = 'rgba(16, 16, 30, 0.9)';
+            }
+        });
+    </script>
+</body>
+</html>
