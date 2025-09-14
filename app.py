@@ -44,8 +44,28 @@ else:
         db_port = os.environ.get('DB_PORT', '3306')
         db_name = os.environ.get('DB_NAME')
         
-        if not all([db_user, db_password, db_host, db_name]):
-            raise ValueError("Missing required database environment variables. Please check your .env file.")
+        # Check which variables are missing
+        missing_vars = []
+        if not db_user: missing_vars.append('DB_USER')
+        if not db_password: missing_vars.append('DB_PASSWORD')
+        if not db_host: missing_vars.append('DB_HOST')
+        if not db_name: missing_vars.append('DB_NAME')
+        
+        if missing_vars:
+            print("❌ Missing required database environment variables:")
+            for var in missing_vars:
+                print(f"   - {var}")
+            print("\nFor DigitalOcean deployment, you need to set:")
+            print("   DATABASE_URL=mysql+pymysql://user:password@host:port/database")
+            print("Or set individual variables: DB_USER, DB_PASSWORD, DB_HOST, DB_NAME")
+            print("\nCurrent environment variables:")
+            env_vars = ['DATABASE_URL', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_NAME', 'FLASK_ENV']
+            for var in env_vars:
+                value = os.environ.get(var, 'NOT SET')
+                if 'PASSWORD' in var and value != 'NOT SET':
+                    value = '***'
+                print(f"   {var}={value}")
+            raise ValueError(f"Missing required database environment variables: {', '.join(missing_vars)}")
         
         database_url = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     
