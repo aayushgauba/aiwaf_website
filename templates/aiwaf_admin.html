@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIWAF Protection Admin - AIWAF Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">🛡️ AIWAF Protection Admin</h1>
+                
+                <!-- Status Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Protection Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="status-info">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="whitelist-tab" data-bs-toggle="tab" data-bs-target="#whitelist" type="button">Whitelist</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="blacklist-tab" data-bs-toggle="tab" data-bs-target="#blacklist" type="button">Blacklist</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="keywords-tab" data-bs-toggle="tab" data-bs-target="#keywords" type="button">Keywords</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="adminTabContent">
+                    <!-- Whitelist Tab -->
+                    <div class="tab-pane fade show active" id="whitelist" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>IP Whitelist Management</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="whitelist-ip" placeholder="Enter IP address (e.g., 192.168.1.100)">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-success" onclick="addToWhitelist()">Add to Whitelist</button>
+                                    </div>
+                                </div>
+                                <div id="whitelist-list">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blacklist Tab -->
+                    <div class="tab-pane fade" id="blacklist" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>IP Blacklist Management</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="blacklist-ip" placeholder="IP address">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="blacklist-reason" placeholder="Reason">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-danger" onclick="addToBlacklist()">Add to Blacklist</button>
+                                    </div>
+                                </div>
+                                <div id="blacklist-list">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keywords Tab -->
+                    <div class="tab-pane fade" id="keywords" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>Keyword Blocking</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="keyword-text" placeholder="Enter keyword to block (e.g., wp-admin, .env)">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-warning" onclick="addKeyword()">Block Keyword</button>
+                                    </div>
+                                </div>
+                                <div id="keywords-list">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back to Documentation -->
+                <div class="mt-4 text-center">
+                    <a href="/" class="btn btn-primary">← Back to Documentation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load status and lists on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatus();
+            loadWhitelist();
+            loadBlacklist();
+            loadKeywords();
+        });
+
+        function loadStatus() {
+            fetch('/aiwaf/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusInfo = document.getElementById('status-info');
+                    if (data.protection_enabled) {
+                        statusInfo.innerHTML = `
+                            <div class="alert alert-success">
+                                <strong>✅ AIWAF Protection Active</strong><br>
+                                Storage: ${data.storage_type}<br>
+                                Rate Limit: ${data.configuration.rate_max} requests per ${data.configuration.rate_window} seconds<br>
+                                Auto-block: ${data.configuration.rate_flood} requests<br>
+                                CSV Files: ${data.csv_files.length > 0 ? data.csv_files.join(', ') : 'None yet'}
+                            </div>
+                        `;
+                    } else {
+                        statusInfo.innerHTML = '<div class="alert alert-warning">⚠️ AIWAF Protection Not Available</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('status-info').innerHTML = '<div class="alert alert-danger">❌ Error loading status</div>';
+                });
+        }
+
+        function loadWhitelist() {
+            fetch('/aiwaf/whitelist')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('whitelist-list');
+                    if (data.whitelist && data.whitelist.length > 0) {
+                        list.innerHTML = data.whitelist.map(item => 
+                            `<span class="badge bg-success me-2 mb-2">${item.ip}</span>`
+                        ).join('');
+                    } else {
+                        list.innerHTML = '<em>No whitelisted IPs</em>';
+                    }
+                });
+        }
+
+        function loadBlacklist() {
+            fetch('/aiwaf/blacklist')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('blacklist-list');
+                    if (data.blacklist && data.blacklist.length > 0) {
+                        list.innerHTML = data.blacklist.map(item => 
+                            `<div class="alert alert-danger py-2 mb-2">
+                                <strong>${item.ip}</strong> - ${item.reason}
+                                <small class="text-muted d-block">${item.added_date}</small>
+                            </div>`
+                        ).join('');
+                    } else {
+                        list.innerHTML = '<em>No blacklisted IPs</em>';
+                    }
+                });
+        }
+
+        function loadKeywords() {
+            fetch('/aiwaf/keywords')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('keywords-list');
+                    if (data.keywords && data.keywords.length > 0) {
+                        list.innerHTML = data.keywords.map(item => 
+                            `<span class="badge bg-warning text-dark me-2 mb-2">${item.keyword}</span>`
+                        ).join('');
+                    } else {
+                        list.innerHTML = '<em>No blocked keywords</em>';
+                    }
+                });
+        }
+
+        function addToWhitelist() {
+            const ip = document.getElementById('whitelist-ip').value;
+            if (!ip) return;
+
+            fetch('/aiwaf/whitelist', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ip: ip})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('whitelist-ip').value = '';
+                    loadWhitelist();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+
+        function addToBlacklist() {
+            const ip = document.getElementById('blacklist-ip').value;
+            const reason = document.getElementById('blacklist-reason').value;
+            if (!ip) return;
+
+            fetch('/aiwaf/blacklist', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ip: ip, reason: reason || 'Manual block'})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('blacklist-ip').value = '';
+                    document.getElementById('blacklist-reason').value = '';
+                    loadBlacklist();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+
+        function addKeyword() {
+            const keyword = document.getElementById('keyword-text').value;
+            if (!keyword) return;
+
+            fetch('/aiwaf/keywords', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({keyword: keyword})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('keyword-text').value = '';
+                    loadKeywords();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
