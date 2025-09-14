@@ -18,6 +18,27 @@ def run_with_ssh_tunnel():
         # Local development - use SSH tunnel
         print("Starting SSH tunnel for local development...")
         
+        # Validate required environment variables
+        required_vars = {
+            'SSH_HOST': ssh_host,
+            'SSH_USERNAME': os.environ.get('SSH_USERNAME'),
+            'SSH_PASSWORD': os.environ.get('SSH_PASSWORD'),
+            'DB_HOST': os.environ.get('DB_HOST'),
+            'DB_USER': os.environ.get('DB_USER'),
+            'DB_PASSWORD': os.environ.get('DB_PASSWORD'),
+            'DB_NAME': os.environ.get('DB_NAME')
+        }
+        
+        missing_vars = [var for var, value in required_vars.items() if not value]
+        if missing_vars:
+            print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+            print("Please check your .env file")
+            return
+        
+        print(f"Connecting to SSH host: {ssh_host}")
+        print(f"SSH Username: {required_vars['SSH_USERNAME']}")
+        print(f"Database host: {required_vars['DB_HOST']}")
+        
         try:
             import sshtunnel
             import paramiko
@@ -31,9 +52,9 @@ def run_with_ssh_tunnel():
                 # Skip if fix not needed or not available
                 pass
             
-            ssh_username = os.environ.get('SSH_USERNAME')
-            ssh_password = os.environ.get('SSH_PASSWORD')
-            db_host = os.environ.get('DB_HOST')
+            ssh_username = required_vars['SSH_USERNAME']
+            ssh_password = required_vars['SSH_PASSWORD']
+            db_host = required_vars['DB_HOST']
             db_port = int(os.environ.get('DB_PORT', 3306))
             
             # Configure SSH tunnel timeouts
@@ -58,10 +79,10 @@ def run_with_ssh_tunnel():
                 # Import Flask app after tunnel is established
                 from app import app, define_models
                 
-                # Update the database URL to use the tunnel
-                db_user = os.environ.get('DB_USER')
-                db_password = os.environ.get('DB_PASSWORD')
-                db_name = os.environ.get('DB_NAME')
+                # Get database credentials from environment variables
+                db_user = required_vars['DB_USER']
+                db_password = required_vars['DB_PASSWORD']
+                db_name = required_vars['DB_NAME']
                 
                 tunnel_url = f'mysql+pymysql://{db_user}:{db_password}@127.0.0.1:{tunnel.local_bind_port}/{db_name}'
                 print(f"Database URL: mysql+pymysql://{db_user}:***@127.0.0.1:{tunnel.local_bind_port}/{db_name}")

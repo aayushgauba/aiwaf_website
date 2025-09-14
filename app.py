@@ -15,28 +15,46 @@ app = Flask(__name__)
 # Database configuration with SSH tunnel support
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Check if we're using SSH tunnel (local development) or direct connection (production)
+# Determine environment mode
 ssh_host = os.environ.get('SSH_HOST')
-if ssh_host:
+flask_env = os.environ.get('FLASK_ENV', 'production')
+is_development = flask_env == 'development' and ssh_host
+
+print(f"Environment: {flask_env}")
+print(f"SSH Host configured: {'Yes' if ssh_host else 'No'}")
+print(f"Running in: {'Development (SSH Tunnel)' if is_development else 'Production (Direct Connection)'}")
+
+if is_development:
     # Local development with SSH tunnel - skip SQLAlchemy initialization
     # It will be handled by run_tunnel.py after tunnel is established
+    print("Skipping database initialization - will be handled by SSH tunnel script")
     db = None
 else:
-    # Production - direct connection
-    db_user = os.environ.get('DB_USER', 'username')
-    db_password = os.environ.get('DB_PASSWORD', 'password')
-    db_host = os.environ.get('DB_HOST', 'localhost')
-    db_port = os.environ.get('DB_PORT', '3306')
-    db_name = os.environ.get('DB_NAME', 'aiwaf_docs')
+    # Production - direct connection using environment variables
+    print("Initializing database for production...")
     
-    # If DATABASE_URL is provided, use it directly
+    # Try DATABASE_URL first (for platforms like DigitalOcean)
     database_url = os.environ.get('DATABASE_URL')
+    
     if not database_url:
+        # Build from individual components from .env
+        db_user = os.environ.get('DB_USER')
+        db_password = os.environ.get('DB_PASSWORD')
+        db_host = os.environ.get('DB_HOST')
+        db_port = os.environ.get('DB_PORT', '3306')
+        db_name = os.environ.get('DB_NAME')
+        
+        if not all([db_user, db_password, db_host, db_name]):
+            raise ValueError("Missing required database environment variables. Please check your .env file.")
+        
         database_url = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    
+    print(f"Database URL configured: {database_url.split('://')[0]}://[user]:[password]@{database_url.split('@')[1]}")
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    # Initialize SQLAlchemy only for production
+    
+    # Initialize SQLAlchemy for production
     db = SQLAlchemy(app)
 
 # Database Models (will be properly defined after SSH tunnel initialization)
@@ -116,18 +134,27 @@ def doc_page(framework, page):
 
 # Initialize database tables
 if __name__ == '__main__':
-    # Only initialize database when running directly (not through tunnel)
+    # Use the same environment detection logic
     ssh_host = os.environ.get('SSH_HOST')
-    if not ssh_host:
-        # No SSH tunnel - safe to initialize database
+    flask_env = os.environ.get('FLASK_ENV', 'production')
+    is_development = flask_env == 'development' and ssh_host
+    
+    if not is_development and db is not None:
+        # Production mode - initialize database
         with app.app_context():
             try:
                 db.create_all()
-                print("Database tables created successfully")
+                print("✅ Database tables created successfully")
             except Exception as e:
-                print(f"Database initialization error: {e}")
+                print(f"❌ Database initialization error: {e}")
+    elif is_development:
+        print("Development mode - database initialization will be handled by tunnel runner")
     else:
-        print("SSH tunnel detected - skipping database initialization (will be handled by tunnel runner)")
+        print("Warning: Database not initialized (db is None)")
 
+    # Get port from environment
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"Starting Flask app on port {port} (debug: {debug_mode})")
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
