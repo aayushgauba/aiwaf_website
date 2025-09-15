@@ -30,10 +30,9 @@ app.config['AIWAF_MIN_FORM_TIME'] = 2.0  # Minimum form submission time
 
 # Initialize AIWAF protection
 
-from aiwaf_flask import register_aiwaf_protection
-register_aiwaf_protection(app)
-print("🛡️  AIWAF Flask protection enabled with CSV storage")
-print("⚠️  AIWAF Flask not available - install with: pip install aiwaf-flask")
+from aiwaf_flask import AIWAF
+
+aiwaf = AIWAF(app)
 
 @app.route('/')
 def home():
