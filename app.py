@@ -22,6 +22,7 @@ app.config['AIWAF_DATA_DIR'] = 'aiwaf_data'  # Directory for CSV files
 app.config['AIWAF_ENABLE_LOGGING'] = True       # Enable logging
 app.config['AIWAF_LOG_DIR'] = 'logs'            # Log directory
 app.config['AIWAF_LOG_FORMAT'] = 'common'     # Format: combined, common, csv, json
+app.config["AIWAF_USE_RUST"] = True
 # AIWAF Protection Settings
 app.config['AIWAF_RATE_WINDOW'] = 60     # 60 seconds window
 app.config['AIWAF_RATE_MAX'] = 100       # 100 requests per minute
